@@ -1,0 +1,10 @@
+
+\.vs/Sublit/v16/
+
+Sublit/bin/Debug/netcoreapp3\.0/
+
+Sublit/obj/Debug/netcoreapp3\.0/
+
+Sublit/obj/
+
+\.vs/Sublit/DesignTimeBuild/\.dtbcache
