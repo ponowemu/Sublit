@@ -12,67 +12,70 @@ namespace Sublit2
 {
     class ShopDatabase
     {
-        public static MySqlConnection sql_conn;
-        private static string Host = "25.22.236.167\\INSERTGT";
-        private static string Login = "sa";
-        private static string Pass = "";
-        private static string Db = "A_M_Consultants";
+        private static MySqlConnection sql_conn_s24;
+        private static MySqlConnection sql_conn_spc;
+        private static string s24_Host = "mysql-sprzegla.nano.pl";
+        private static string s24_Login = "db100008759_apli";
+        private static string s24_Pass = "7hV5vR5e";
+        private static string s24_Db = "db100008759";
+
+        private static string spc_Host = "mysql-sprzegla.nano.pl";
+        private static string spc_Login = "db100008757_apli";
+        private static string spc_Pass = "8ZAYsiU1";
+        private static string spc_Db = "db100008757";
 
 
         public ShopDatabase()
         {
             try
             {
-                MySqlConnection thisConnection = new MySqlConnection(@"Server=" + Host + ";Database=" + Db + ";User Id=" + Login + ";Password=" + Pass + ";");
+                MySqlConnection thisConnection = new MySqlConnection(@"Server=" + s24_Host + ";Port=3306;Database=" + s24_Db + ";Uid=" + s24_Login + ";Pwd=" + s24_Pass + ";");
                 thisConnection.Open();
+                sql_conn_s24 = thisConnection;
 
-                sql_conn = thisConnection;
+                MySqlConnection spc = new MySqlConnection(@"Server=" + spc_Host + ";Port=3306;Database=" + spc_Db + ";Uid=" + spc_Login + ";Pwd=" + spc_Pass + ";");
+                spc.Open();
+                sql_conn_spc = spc;
             }
             catch (Exception ex)
             {
+                Console.WriteLine("DUPA");
                 Console.WriteLine(ex.Message);
             }
         }
-        public List<Document> GetDocuments()
+
+        public List<Order> GetOrders(int shop)
         {
-            try
+            var orders_list = new List<Order>();
+            var date = DateTime.Now;
+            date = date.AddMonths(-1);
+            MySqlConnection sql;
+            string query = "SELECT * FROM ps_orders AS A INNER JOIN ps_customer AS B ON A.id_customer = B.id_customer WHERE A.date_add >='" + date.ToString("yyyy-MM-dd") + "' ORDER BY A.date_add DESC";
+
+            if (shop == 1)
+                sql = sql_conn_s24;
+            else
+                sql = sql_conn_spc;
+
+            using (MySqlCommand command = new MySqlCommand(query, sql))
             {
-                List<Document> docList = new List<Document>();
-
-                string query = "SELECT * FROM dok__Dokument WHERE dok_Typ = 2 ORDER BY dok_Id DESC";
-
-                using (MySqlCommand command = new MySqlCommand(query, sql_conn))
+                using (MySqlDataReader reader = command.ExecuteReader())
                 {
-                    using (MySqlDataReader reader = command.ExecuteReader())
+                    while (reader.Read())
                     {
-                        while (reader.Read())
-                        {
-                            int item = reader.GetInt32(reader.GetOrdinal("dok_Id"));
-                            docList.Add(new Document()
-                            {
-                                Checked = false,
-                                Id = reader.GetInt32(reader.GetOrdinal("dok_Id")),
-                                CreationDate = reader.GetDateTime(reader.GetOrdinal("dok_DataWyst")),
-                                Creator = reader.GetString(reader.GetOrdinal("dok_Wystawil")),
-                                Number = reader.GetString(reader.GetOrdinal("dok_NrPelny")),
-                                Name = reader.GetInt32(reader.GetOrdinal("dok_Nr")).ToString(),
-                                Description = reader.GetString(reader.GetOrdinal("dok_Uwagi")),
-                                NetPrice = reader.GetDecimal(reader.GetOrdinal("dok_WartNetto")),
-                                GrossPrice = reader.GetDecimal(reader.GetOrdinal("dok_WartBrutto")),
-                                DocType = reader.GetInt32(reader.GetOrdinal("dok_Typ"))
-                            });
-                        }
+                        orders_list.Add(new Order() {
+                            Created = reader.GetDateTime(reader.GetOrdinal("date_add")),
+                            CustomerData = reader.GetString(reader.GetOrdinal("firstname")) + " " + reader.GetString(reader.GetOrdinal("lastname")),
+                            Id = reader.GetInt32(reader.GetOrdinal("id_order")),
+                            Reference = reader.GetString(reader.GetOrdinal("reference")),
+                            TotalPaid = reader.GetDecimal(reader.GetOrdinal("total_paid")),
+                            Updated = reader.GetDateTime(reader.GetOrdinal("date_upd")),
+                            Email = reader.GetString(reader.GetOrdinal("email"))
+                        });
                     }
                 }
-                return docList;
-
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-                Console.WriteLine(ex.Message);
-                return null;
-            }
+            return orders_list;
         }
     }
 }

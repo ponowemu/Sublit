@@ -58,6 +58,34 @@ namespace Sublit2
                 return null;
             }
         }
+        public string GetDocumentNumber(string reference)
+        {
+            try
+            {
+                string docNumber = "";
+
+                string query = "SELECT * FROM dok__Dokument WHERE dok_Typ = 2 AND dok_DoDokNrPelny = '"+reference+"' ORDER BY dok_Id DESC";
+
+                using (SqlCommand command = new SqlCommand(query, sql_conn))
+                {
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            docNumber = reader.GetString(reader.GetOrdinal("dok_NrPelny"));
+                        }
+                    }
+                }
+                return docNumber;
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                Console.WriteLine(ex.Message);
+                return null;
+            }
+        }
         public List<Document> GetDocuments()
         {
             try

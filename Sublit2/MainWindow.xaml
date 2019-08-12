@@ -13,7 +13,7 @@
      TextOptions.TextRenderingMode="Auto"
      Background="{DynamicResource MaterialDesignPaper}"
      FontFamily="{DynamicResource MaterialDesignFont}"
-        Title="Sublit" Height="750" Width="880">
+        Title="Sublit" Height="750" Width="1200">
     <Grid>
 
         <Grid.RowDefinitions>
@@ -64,12 +64,12 @@
                         <RowDefinition Height="2*"></RowDefinition>
                     </Grid.RowDefinitions>
                     <Label Content="Sprzegla24.pl" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                    <Button Grid.Row="1" Content="Pobierz zamówienia" />
+                    <Button Grid.Row="1" Content="Pobierz zamówienia" Click="Button_Click_3" />
                     <Label Content="Sprzeglo.com.pl" Grid.Row="2" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                    <Button Grid.Row="3" Content="Pobierz zamówienia" />
+                    <Button Grid.Row="3" Content="Pobierz zamówienia" Click="Button_Click_5" />
                     <Label Content="Zaznaczone" Grid.Row="4" HorizontalAlignment="Left" VerticalAlignment="Center"/>
 
-                    <Button Grid.Row="5" Content="Znajdz w subiekcie"/>
+                    <Button Grid.Row="5" Content="Wyślij e-mail" Click="Button_Click_4"/>
 
                 </Grid>
             </GroupBox>

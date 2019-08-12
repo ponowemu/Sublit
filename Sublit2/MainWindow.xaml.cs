@@ -27,38 +27,49 @@ namespace Sublit2
     {
         private Subiekt su;
         private Database db;
+        private ShopDatabase shop_db;
+
         private List<Document> documentsList = null;
+        private List<Order> ordersList = null;
         public MainWindow()
         {
             InitializeComponent();
             db = new Database();
+            shop_db = new ShopDatabase();
+
             Subiekt subiekt = new Subiekt();
             subiekt.Connect();
             su = subiekt;
-            
+
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            
+
             var documents = db.GetDocuments();
             list.ItemsSource = documents;
             documentsList = documents;
+            ordersList = null;
         }
         private void SearchDocument(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Return)
             {
                 list.ItemsSource = null;
-                list.ItemsSource = documentsList.Where(d => d.Number.ToUpper().Replace(" ","").Contains(search.Text.ToUpper().Replace(" ",""))).ToList();
+                if (ordersList != null)
+                    list.ItemsSource = ordersList.Where(d => d.Reference.ToUpper().Replace(" ", "").Contains(search.Text.ToUpper().Replace(" ", ""))).ToList();
+                else if(documentsList != null)
+                    list.ItemsSource = documentsList.Where(d => d.Number.ToUpper().Replace(" ", "").Contains(search.Text.ToUpper().Replace(" ", ""))).ToList();
+
             }
-            
+
         }
+
 
         [STAThread]
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            if(documentsList == null || documentsList.Count == 0)
+            if (documentsList == null || documentsList.Count == 0)
                 MessageBox.Show("Nie możesz pobrać dokumentów dla pustej listy", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
             else
             {
@@ -69,12 +80,12 @@ namespace Sublit2
                     var path = dialog.SelectedPath;
                     try
                     {
-                        foreach(var el in list)
+                        foreach (var el in list)
                         {
-                            var res = su.GenerateInvoice(el.Number, path);   
+                            var res = su.GenerateInvoice(el.Number, path);
                         }
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         MessageBox.Show("An error occured!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                         Console.WriteLine(ex.Message);
@@ -89,7 +100,7 @@ namespace Sublit2
             string topic = "";
             string prefix = "";
             string content = "";
-            if(shop == 1)
+            if (shop == 1)
             {
                 sender = "info@sprzegla24.pl";
                 topic = "[Zamówienie Sprzegla24.pl] Faktura VAT ";
@@ -105,7 +116,7 @@ namespace Sublit2
             }
             var smtpServerName = ConfigurationManager.AppSettings[prefix + "_SmtpServer"];
             var port = ConfigurationManager.AppSettings[prefix + "_Port"];
-            var senderEmailId = ConfigurationManager.AppSettings[prefix+"_SenderEmailId"];
+            var senderEmailId = ConfigurationManager.AppSettings[prefix + "_SenderEmailId"];
             var senderPassword = ConfigurationManager.AppSettings[prefix + "_SenderPassword"];
 
             MailMessage message = new MailMessage(
@@ -123,7 +134,7 @@ namespace Sublit2
             disposition.ReadDate = System.IO.File.GetLastAccessTime(file);
             message.Attachments.Add(data);
 
-            
+
             var smptClient = new SmtpClient(smtpServerName, Convert.ToInt32(port))
             {
                 Credentials = new NetworkCredential(senderEmailId, senderPassword),
@@ -159,7 +170,7 @@ namespace Sublit2
                             {
                                 email = "";
                             }
-                            
+
                             var correct = Interaction.InputBox("Wprowadź lub skoryguj adres e-mail odbiorcy!", "Odbiorca", email);
 
                             if (el.OrderNumber.Contains("SP24"))
@@ -175,8 +186,76 @@ namespace Sublit2
                     }
                 }
             }
-           
-           
+
+
+        }
+
+        private void Button_Click_3(object sender, RoutedEventArgs e)
+        {
+            var orders = shop_db.GetOrders(1);
+            list.ItemsSource = null;
+            list.ItemsSource = orders;
+            ordersList = orders;
+            documentsList = null;
+        }
+
+        private void Button_Click_4(object sender, RoutedEventArgs e)
+        {
+            if (ordersList == null)
+                MessageBox.Show("Zaznacz coś najpierw");
+            else
+            {
+                var list = ordersList.Where(d => d.Checked == true).ToList();
+                if (list.Count == 0)
+                    MessageBox.Show("Zaznacz coś najpierw.");
+                foreach (var el in list)
+                {
+                    var docNumber = db.GetDocumentNumber(el.Reference);
+
+                    using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
+                    {
+                        System.Windows.Forms.DialogResult result = dialog.ShowDialog();
+                        var path = dialog.SelectedPath;
+                        try
+                        {
+                            var res = su.GenerateInvoice(docNumber, path);
+                            string email = "";
+
+                            try
+                            {
+                                email = el.Email;
+                            }
+                            catch
+                            {
+                                email = "";
+                            }
+
+                            var correct = Interaction.InputBox("Wprowadź lub skoryguj adres e-mail odbiorcy!", "Odbiorca", email);
+                            if (el.Reference.Contains("SP24"))
+                                this.SendEmail(res, 1, correct);
+                            else
+                                this.SendEmail(res, 2, correct);
+
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                            MessageBox.Show("Nie udało się wysłać. Nie odnaleziono faktury w subiekcie.", "Błąd", MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+
+                    }
+                }
+            }
+
+        }
+
+        private void Button_Click_5(object sender, RoutedEventArgs e)
+        {
+            var orders = shop_db.GetOrders(2);
+            list.ItemsSource = null;
+            list.ItemsSource = orders;
+            ordersList = orders;
+            documentsList = null;
         }
     }
 }
