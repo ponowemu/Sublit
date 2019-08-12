@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MySql.Data.MySqlClient;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -9,20 +10,20 @@ using System.Windows;
 
 namespace Sublit2
 {
-    class Database
+    class ShopDatabase
     {
-        public static SqlConnection sql_conn;
+        public static MySqlConnection sql_conn;
         private static string Host = "25.22.236.167\\INSERTGT";
         private static string Login = "sa";
         private static string Pass = "";
         private static string Db = "A_M_Consultants";
 
 
-        public Database()
+        public ShopDatabase()
         {
             try
             {
-                SqlConnection thisConnection = new SqlConnection(@"Server=" + Host + ";Database=" + Db + ";User Id=" + Login + ";Password=" + Pass + ";");
+                MySqlConnection thisConnection = new MySqlConnection(@"Server=" + Host + ";Database=" + Db + ";User Id=" + Login + ";Password=" + Pass + ";");
                 thisConnection.Open();
 
                 sql_conn = thisConnection;
@@ -30,32 +31,6 @@ namespace Sublit2
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-            }
-        }
-        public Customer GetCustomer(int id)
-        {
-            var customer = new Customer();
-            try
-            {
-                string query = "SELECT * FROM kh__Kontrahent WHERE kh_Id = " + id + "";
-                using (SqlCommand command = new SqlCommand(query, sql_conn))
-                {
-                    using (SqlDataReader reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            customer.Email = reader.GetString(reader.GetOrdinal("kh_EMail"));
-                            customer.Id = reader.GetInt32(reader.GetOrdinal("kh_Id"));
-                            customer.Name = reader.GetString(reader.GetOrdinal("kh_Kontakt"));
-                        }
-                    }
-                }
-                return customer;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-                return null;
             }
         }
         public List<Document> GetDocuments()
@@ -66,9 +41,9 @@ namespace Sublit2
 
                 string query = "SELECT * FROM dok__Dokument WHERE dok_Typ = 2 ORDER BY dok_Id DESC";
 
-                using (SqlCommand command = new SqlCommand(query, sql_conn))
+                using (MySqlCommand command = new MySqlCommand(query, sql_conn))
                 {
-                    using (SqlDataReader reader = command.ExecuteReader())
+                    using (MySqlDataReader reader = command.ExecuteReader())
                     {
                         while (reader.Read())
                         {
@@ -84,9 +59,7 @@ namespace Sublit2
                                 Description = reader.GetString(reader.GetOrdinal("dok_Uwagi")),
                                 NetPrice = reader.GetDecimal(reader.GetOrdinal("dok_WartNetto")),
                                 GrossPrice = reader.GetDecimal(reader.GetOrdinal("dok_WartBrutto")),
-                                DocType = reader.GetInt32(reader.GetOrdinal("dok_Typ")),
-                                OrderNumber = reader.GetString(reader.GetOrdinal("dok_DoDokNrPelny")),
-                                CustomerId = reader.GetInt32(reader.GetOrdinal("dok_OdbiorcaId"))
+                                DocType = reader.GetInt32(reader.GetOrdinal("dok_Typ"))
                             });
                         }
                     }

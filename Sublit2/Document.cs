@@ -20,6 +20,8 @@ namespace Sublit2
         public decimal NetPrice { get; set; }
         public decimal GrossPrice { get; set; }
         public string Description { get; set; }
+        public string OrderNumber { get; set; }
+        public int CustomerId { get; set; }
 
     }
 }

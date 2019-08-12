@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,7 +11,6 @@ namespace Sublit2
     {
         protected static InsERT.Subiekt sub;
 
-        [STAThread]
         public void Connect()
         {
             try
@@ -38,18 +38,20 @@ namespace Sublit2
                 //return null;
             }
         }
-        public bool GenerateInvoice(string documentNumber, string path)
+        public string GenerateInvoice(string documentNumber, string path)
         {
             try
             {
+                var pat = Path.Combine(path, documentNumber.Replace("/","_")+".pdf");
+                Console.WriteLine(pat);
                 InsERT.SuDokument dok = sub.Dokumenty.Wczytaj(documentNumber.Trim());
-                dok.DrukujDoPliku(path+"\\"+documentNumber.Replace(" ","")+".pdf", InsERT.TypPlikuEnum.gtaTypPlikuPDF);
-                return true;
+                dok.DrukujDoPliku(pat, InsERT.TypPlikuEnum.gtaTypPlikuPDF);
+                return pat;
             }
             catch(Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                return false;
+                return "";
             }
         }
 
